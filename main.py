@@ -26,6 +26,7 @@ import httplib2
 import json
 import logging
 import os
+import pickle
 import random
 
 from apiclient import discovery
@@ -44,69 +45,16 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     autoescape=True,
     extensions=['jinja2.ext.autoescape'])
 
-# CLIENT_SECRETS, name of a file containing the OAuth 2.0 information for this
-# application, including client_id and client_secret, which are found
-# on the API Access tab on the Google APIs
-# Console <http://code.google.com/apis/console>
-CLIENT_SECRETS = os.path.join(os.path.dirname(__file__), 'client_secrets.json')
-
-# Helpful message to display in the browser if the CLIENT_SECRETS file
-# is missing.
-MISSING_CLIENT_SECRETS_MESSAGE = """
-<h1>Warning: Please configure OAuth 2.0</h1>
-<p>
-To make this sample run you will need to populate the client_secrets.json file
-found at:
-</p>
-<p>
-<code>%s</code>.
-</p>
-<p>with information found on the <a
-href="https://code.google.com/apis/console">APIs Console</a>.
-</p>
-""" % CLIENT_SECRETS
-
-
-http = httplib2.Http(memcache)
-service = discovery.build('drive', 'v2', http=http)
-decorator = appengine.oauth2decorator_from_clientsecrets(
-    CLIENT_SECRETS,
-    scope=[
-      'https://www.googleapis.com/auth/drive',
-      'https://www.googleapis.com/auth/drive.appdata',
-      'https://www.googleapis.com/auth/drive.apps.readonly',
-      'https://www.googleapis.com/auth/drive.file',
-      'https://www.googleapis.com/auth/drive.metadata.readonly',
-      'https://www.googleapis.com/auth/drive.readonly',
-      'https://www.googleapis.com/auth/drive.scripts',
-    ],
-    message=MISSING_CLIENT_SECRETS_MESSAGE)
-
+service = discovery.build('drive', 'v2', http=httplib2.Http())
+credentials = pickle.load(open('credentials','r'))
 
 class MainHandler(webapp2.RequestHandler):
-
-  @decorator.oauth_aware
   def get(self):
-    variables = {
-        'url': decorator.authorize_url(),
-        'has_credentials': decorator.has_credentials(),
-        }
-        
-    if decorator.has_credentials():
-        self.redirect('/files')
-    else:
-        template = JINJA_ENVIRONMENT.get_template('main.html')
-        self.response.write(template.render(variables))
-
-class FilesHandler(webapp2.RequestHandler):
-  @decorator.oauth_required
-  def get(self):
-    response = service.files().list().execute(decorator.http())
+    http = credentials.authorize(httplib2.Http())
+    response = service.files().list().execute(http)
     items = response.get('items')
     files = [{'title':item.get('title'),
               'link':item.get('defaultOpenWithLink')} for item in items]
-
-    print json.dumps(response, sort_keys=True, indent=4) # for debugging
     
     variables = {
         'files':files
@@ -115,22 +63,19 @@ class FilesHandler(webapp2.RequestHandler):
     self.response.write(template.render(variables))
 
 class MakeFileHandler(webapp2.RequestHandler):
-  @decorator.oauth_required
   def get(self):
-  
     body = {
       'mimeType': 'application/vnd.google-apps.spreadsheet',
       'title': 'Puzzle %i' % random.randint(0, 10000),
     }
-    response = service.files().insert(body=body).execute(decorator.http())
+    http = credentials.authorize(httplib2.Http())
+    response = service.files().insert(body=body).execute(http)
   
-    self.redirect('/files')
+    self.redirect('/')
 
 app = webapp2.WSGIApplication(
     [
      ('/', MainHandler),
-     ('/files', FilesHandler),
      ('/makefile', MakeFileHandler),
-     (decorator.callback_path, decorator.callback_handler()),
     ],
     debug=True)
