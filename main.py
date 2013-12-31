@@ -48,10 +48,14 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 service = discovery.build('drive', 'v2', http=httplib2.Http())
 credentials = pickle.load(open('credentials','r'))
 
+def auth_http():
+    if credentials.access_token_expired or not credentials.access_token:
+      credentials.refresh(httplib2.Http())
+    return credentials.authorize(httplib2.Http())
+
 class MainHandler(webapp2.RequestHandler):
   def get(self):
-    http = credentials.authorize(httplib2.Http())
-    response = service.files().list().execute(http)
+    response = service.files().list().execute(auth_http())
     items = response.get('items')
     files = [{'title':item.get('title'),
               'link':item.get('defaultOpenWithLink')} for item in items]
@@ -68,8 +72,7 @@ class MakeFileHandler(webapp2.RequestHandler):
       'mimeType': 'application/vnd.google-apps.spreadsheet',
       'title': 'Puzzle %i' % random.randint(0, 10000),
     }
-    http = credentials.authorize(httplib2.Http())
-    response = service.files().insert(body=body).execute(http)
+    response = service.files().insert(body=body).execute(auth_http())
   
     self.redirect('/')
 
