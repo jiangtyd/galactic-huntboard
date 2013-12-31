@@ -1,0 +1,16 @@
+<html>
+  <head>
+    <title>Galactic Huntboard</title>
+  </head>
+  <body>
+  <p> List of Files </p>
+  
+  <ul>
+  {% for file in files %}
+  <li><a href="{{file.link}}">{{file.title}}</a></li>
+  {% endfor %}
+  </ul>
+
+  <p> <a href="makefile">Make new file!</a> </p>
+  </body>
+</html>
