@@ -77,13 +77,27 @@ class MakeFileHandler(webapp2.RequestHandler):
     file_id = response.get('id')
     perm = {'withLink': True, 'role': "writer", 'type': "anyone", 'value':''}
     response = service.permissions().insert(fileId = file_id, body=perm).execute(auth_http())
-    print response
   
     self.redirect('/')
+    
+class ClearAllHandler(webapp2.RequestHandler):
+    def get(self):
+       http = auth_http()
+       response = service.files().list().execute(http)
+       items = response.get('items')
+       fids = [item.get('id') for item in items]
+       
+       for fid in fids:
+         service.files().delete(fileId=fid).execute(http)
+    
+       self.redirect('/')
+    
+
 
 app = webapp2.WSGIApplication(
     [
      ('/', MainHandler),
      ('/makefile', MakeFileHandler),
+     ('/clearall', ClearAllHandler),
     ],
     debug=True)
