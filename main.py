@@ -73,6 +73,11 @@ class MakeFileHandler(webapp2.RequestHandler):
       'title': 'Puzzle %i' % random.randint(0, 10000),
     }
     response = service.files().insert(body=body).execute(auth_http())
+    
+    file_id = response.get('id')
+    perm = {'withLink': True, 'role': "writer", 'type': "anyone", 'value':''}
+    response = service.permissions().insert(fileId = file_id, body=perm).execute(auth_http())
+    print response
   
     self.redirect('/')
 
