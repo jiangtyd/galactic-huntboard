@@ -1,8 +1,10 @@
-<html>
-  <head>
-    <title>Galactic Huntboard</title>
-  </head>
-  <body>
+{% extends "base.html" %}
+
+{% block head %}
+    <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
+    <script src="/javascripts/files.js"></script>
+{% endblock %}
+{% block content %}
   <p> List of Files </p>
   
   <ul>
@@ -11,6 +13,6 @@
   {% endfor %}
   </ul>
 
-  <p> <a href="makefile">Make new file!</a> </p>
-  </body>
-</html>
+  <p> <input type="text" placeholder="Puzzle Title" id="newpuzzlename"/>
+  <button type="button" id="newpuzzlebutton">Add new puzzle</button>
+{% endblock %}

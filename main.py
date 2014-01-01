@@ -75,6 +75,25 @@ class MainHandler(webapp2.RequestHandler):
 
 class MakeFileHandler(webapp2.RequestHandler):
 
+    def post(self):
+        body = {
+          'mimeType': 'application/vnd.google-apps.spreadsheet',
+          'title': self.request.get('name')
+        }
+        response = DRIVE.files().insert(body=body).execute(auth_http())
+
+        file_id = response.get('id')
+        perm = {
+            'withLink': True,
+            'role': "writer",
+            'type': "anyone",
+            'value': ''}
+        response = DRIVE.permissions().insert(
+            fileId=file_id,
+            body=perm).execute(auth_http())
+
+        self.redirect('/')
+
     def get(self):
         body = {
             'mimeType': 'application/vnd.google-apps.spreadsheet',
