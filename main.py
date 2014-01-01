@@ -29,6 +29,8 @@ import random
 
 from apiclient import discovery
 
+from google.appengine.api import memcache
+
 import webapp2
 import jinja2
 
@@ -40,13 +42,20 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     extensions=['jinja2.ext.autoescape'])
 
 DRIVE = discovery.build('drive', 'v2', http=httplib2.Http())
-CREDENTIALS = pickle.load(open('credentials', 'r'))
 
+
+def get_credentials():
+    credentials = memcache.get('credentials')
+    if not credentials:
+        print 'loading from file'
+        credentials = pickle.load(open('credentials', 'r'))
+    if credentials.access_token_expired or not credentials.access_token:
+        credentials.refresh(httplib2.Http())
+        memcache.set('credentials', credentials)
+    return credentials
 
 def auth_http():
-    if CREDENTIALS.access_token_expired or not CREDENTIALS.access_token:
-        CREDENTIALS.refresh(httplib2.Http())
-    return CREDENTIALS.authorize(httplib2.Http())
+    return get_credentials().authorize(httplib2.Http())
 
 
 class MainHandler(webapp2.RequestHandler):
