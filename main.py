@@ -59,16 +59,36 @@ def auth_http():
     return get_credentials().authorize(httplib2.Http())
 
 
+def getFiles():
+    items = DRIVE.files().list().execute(auth_http()).get('items')
+    return [{'title': item.get('title'),
+              'link': item.get('defaultOpenWithLink')} for item in items]
+
+def makeFile(name):
+    body = {
+      'mimeType': 'application/vnd.google-apps.spreadsheet',
+      'title': name
+    }
+
+    file_id = DRIVE.files().insert(body=body).execute(auth_http()).get('id')
+
+    perm = {
+        'withLink': True,
+        'role': "writer",
+        'type': "anyone",
+        'value': ''
+    }
+
+    DRIVE.permissions().insert(
+        fileId=file_id,
+        body=perm).execute(auth_http())
+
+
 class MainHandler(webapp2.RequestHandler):
 
     def get(self):
-        response = DRIVE.files().list().execute(auth_http())
-        items = response.get('items')
-        files = [{'title': item.get('title'),
-                  'link': item.get('defaultOpenWithLink')} for item in items]
-
         variables = {
-            'files': files
+            'files': getFiles()
         }
         template = JINJA_ENVIRONMENT.get_template('files.html')
         self.response.write(template.render(variables))
@@ -76,50 +96,30 @@ class MainHandler(webapp2.RequestHandler):
 class FileHandler(webapp2.RequestHandler):
 
     def get(self):
-        response = DRIVE.files().list().execute(auth_http())
-        items = response.get('items')
-        files = [{'title': item.get('title'),
-                  'link': item.get('defaultOpenWithLink')} for item in items]
-
-        variables = {
-            'files': files
-        }
-
         template = JINJA_ENVIRONMENT.get_template('_filelist.html')
 
         self.response.headers['Content-Type'] = 'application/json'
         self.response.write(json.dumps(
-            { 'html': template.render(variables) }
+            { 'html': template.render({ 'files': getFiles() }) }
             ))
 
 class MakeFileHandler(webapp2.RequestHandler):
 
     def post(self):
-        body = {
-          'mimeType': 'application/vnd.google-apps.spreadsheet',
-          'title': self.request.get('name')
-        }
-        response = DRIVE.files().insert(body=body).execute(auth_http())
+        makeFile(self.request.get('name'))
 
-        file_id = response.get('id')
-        perm = {
-            'withLink': True,
-            'role': "writer",
-            'type': "anyone",
-            'value': ''}
-        DRIVE.permissions().insert(
-            fileId=file_id,
-            body=perm).execute(auth_http())
+        template = JINJA_ENVIRONMENT.get_template('_filelist.html')
 
-        #self.redirect('/')
-
+        self.response.headers['Content-Type'] = 'application/json'
+        self.response.write(json.dumps(
+            { 'html': template.render({ 'files': getFiles() }) }
+            ))
 
 class ClearAllHandler(webapp2.RequestHandler):
 
     def get(self):
         http = auth_http()
-        response = DRIVE.files().list().execute(http)
-        items = response.get('items')
+        items = DRIVE.files().list().execute(http).get('items')
         fids = [item.get('id') for item in items]
 
         for fid in fids:
@@ -131,7 +131,7 @@ routes = [
         (r'/', MainHandler),
         (r'/files', FileHandler),
         (r'/files/new', MakeFileHandler),
-        # (r'/clearall', ClearAllHandler),
+        (r'/clearall', ClearAllHandler),
         ]
 
 app = webapp2.WSGIApplication(routes=routes, debug=True)

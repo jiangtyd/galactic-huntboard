@@ -6,7 +6,9 @@ var initButtons = function() {
     var createFile = function() {
         var v = $('#newpuzzlename').val();
         if(v !== '') {
-            $.post("/files/new", { name: v }, refreshFiles);
+            $.post("/files/new", { name: v }, function(data) { 
+                $('#filelistdiv').html(data.html);
+            });
             $('#newpuzzlename').val('');
         }
     };
