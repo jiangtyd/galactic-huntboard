@@ -4,8 +4,11 @@ var initApis = function() {
 
 var initButtons = function() {
     var createFile = function() {
-        $.post("/files/new", { name: $('#newpuzzlename').val() }, refreshFiles);
-        $('#newpuzzlename').val('');
+        var v = $('#newpuzzlename').val();
+        if(v !== '') {
+            $.post("/files/new", { name: v }, refreshFiles);
+            $('#newpuzzlename').val('');
+        }
     };
 
     $('#newpuzzlebutton').on('click', createFile);
