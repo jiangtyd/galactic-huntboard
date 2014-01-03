@@ -1,3 +1,12 @@
 a, a:visited, a:hover, a:active {
     color: blue;
 }
+
+#footer {
+    text-align: center;
+    margin: auto;
+}
+
+#solved {
+    background-color: #EEEE66;
+}

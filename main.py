@@ -33,6 +33,7 @@ from google.appengine.api import memcache
 
 import webapp2
 import jinja2
+import json
 
 
 JINJA_ENVIRONMENT = jinja2.Environment(
@@ -72,6 +73,24 @@ class MainHandler(webapp2.RequestHandler):
         template = JINJA_ENVIRONMENT.get_template('files.html')
         self.response.write(template.render(variables))
 
+class FileHandler(webapp2.RequestHandler):
+
+    def get(self):
+        response = DRIVE.files().list().execute(auth_http())
+        items = response.get('items')
+        files = [{'title': item.get('title'),
+                  'link': item.get('defaultOpenWithLink')} for item in items]
+
+        variables = {
+            'files': files
+        }
+
+        template = JINJA_ENVIRONMENT.get_template('_filelist.html')
+
+        self.response.headers['Content-Type'] = 'application/json'
+        self.response.write(json.dumps(
+            { 'html': template.render(variables) }
+            ))
 
 class MakeFileHandler(webapp2.RequestHandler):
 
@@ -88,30 +107,11 @@ class MakeFileHandler(webapp2.RequestHandler):
             'role': "writer",
             'type': "anyone",
             'value': ''}
-        response = DRIVE.permissions().insert(
+        DRIVE.permissions().insert(
             fileId=file_id,
             body=perm).execute(auth_http())
 
-        self.redirect('/')
-
-    def get(self):
-        body = {
-            'mimeType': 'application/vnd.google-apps.spreadsheet',
-            'title': 'Puzzle %i' % random.randint(0, 10000),
-        }
-        response = DRIVE.files().insert(body=body).execute(auth_http())
-
-        file_id = response.get('id')
-        perm = {
-            'withLink': True,
-            'role': "writer",
-            'type': "anyone",
-            'value': ''}
-        response = DRIVE.permissions().insert(
-            fileId=file_id,
-            body=perm).execute(auth_http())
-
-        self.redirect('/')
+        #self.redirect('/')
 
 
 class ClearAllHandler(webapp2.RequestHandler):
@@ -127,11 +127,11 @@ class ClearAllHandler(webapp2.RequestHandler):
 
         self.redirect('/')
 
+routes = [
+        (r'/', MainHandler),
+        (r'/files', FileHandler),
+        (r'/files/new', MakeFileHandler),
+        # (r'/clearall', ClearAllHandler),
+        ]
 
-app = webapp2.WSGIApplication(
-    [
-        ('/', MainHandler),
-        ('/makefile', MakeFileHandler),
-        ('/clearall', ClearAllHandler),
-    ],
-    debug=True)
+app = webapp2.WSGIApplication(routes=routes, debug=True)

@@ -1,0 +1,7 @@
+<p> List of Files </p>
+
+<ul id="filelist">
+  {% for file in files %}
+  <li><a href="{{file.link}}">{{file.title}}</a></li>
+  {% endfor %}
+</ul>
