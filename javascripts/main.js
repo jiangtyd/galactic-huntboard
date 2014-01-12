@@ -1,5 +1,7 @@
 "use strict";
 
-$("#loginBtnContainer").click(function() {
-    $("#loginBtnContainer").html('Authenticating...');
+$( document ).ready(function() {
+	$("#loginBtn").click(function() {
+	    $("#loginBtnContainer").html('Authenticating...');
+	});
 });

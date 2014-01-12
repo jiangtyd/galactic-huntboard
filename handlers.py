@@ -97,17 +97,24 @@ class MainHandler(AuthHandler):
 
 class RootHandler(BaseHandler):
   def get(self):
-    """Handles default landing page"""
+    '''Handles default landing page'''
     if (self.logged_in):
-        self.render('home.html')
+        context = {
+            'docKey': '0Ao0dlaERwPXMdE9HdUdBT0Q1SUl3T0x2YndOM1F6aXc'
+        }
+        self.render('puzzle.html', context)
         return
 
-    context = {}
-    context['authfailed'] = self.request.get('authfailed')
-    context['attempt'] = self.request.get('attempt')
-    self.render('main.html', context)
+    self.login_needed()
 
+class PuzzleHandler(BaseHandler):
+  def get(self):
+    '''Handles puzzle page. Creates a spreadsheet for the page if none exists.'''
+    if (self.logged_in):
+        self.render('puzzle.html')
+        return
 
+    self.login_needed()
 '''
 class FileHandler(AuthHandler):
     def get(self):

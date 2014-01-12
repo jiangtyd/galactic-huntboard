@@ -28,7 +28,8 @@ routes = [
   Route('/auth/<provider>', 
     handler='handlers.AuthHandler:_simple_auth', name='auth_login'),
   Route('/auth/<provider>/callback', 
-    handler='handlers.AuthHandler:_auth_callback', name='auth_callback')
+    handler='handlers.AuthHandler:_auth_callback', name='auth_callback'),
+  Route('/hunt2014/<number>', handler='handlers.PuzzleHandler')
 ]
 
 app = WSGIApplication(routes, config=app_config, debug=True)

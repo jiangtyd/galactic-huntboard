@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block head %}
-	<script type="text/javascript" src="/javascripts/home.js"></script>
+	<script type="text/javascript" src="/javascripts/puzzle.js"></script>
   	<script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
     <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
     <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
@@ -13,9 +13,6 @@
 	<iframe id="callins" seamless="seamless"  src="http://www.something.com"></iframe>
 </div>
 <div id="spreadsheetWrapper">
-	<iframe id="spreadsheet" seamless="seamless" src="https://docs.google.com/spreadsheet/ccc?key=0Ao0dlaERwPXMdE9HdUdBT0Q1SUl3T0x2YndOM1F6aXc#gid=0"></iframe>
+	<iframe id="spreadsheet" seamless="seamless" src="https://docs.google.com/spreadsheet/ccc?key={{ docKey }}#gid=0"></iframe>
 </div>
-
-  <p> <input type="text" placeholder="Puzzle Title" id="newpuzzlename"/>
-  <button type="button" id="newpuzzlebutton">Add new puzzle</button>
 {% endblock %}

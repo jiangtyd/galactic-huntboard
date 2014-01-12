@@ -59,6 +59,12 @@ class BaseHandler(webapp2.RequestHandler):
         """Returns true if a user is currently logged in, false otherwise"""
         return self.auth.get_user_by_session() is not None
 
+    def login_needed(self):
+        context = {}
+        context['authfailed'] = self.request.get('authfailed')
+        context['attempt'] = self.request.get('attempt')
+        self.render('main.html', context)
+
     def render(self, template_name, template_vars={}):
         # Preset values for the template
         values = {
@@ -108,7 +114,7 @@ class AuthHandler(BaseHandler, SimpleAuthHandler):
         inGroup = self.checkForAccessRights(data,auth_info)
         if not inGroup:
             logging.info("Unauthorized user "+data['email']+", id"+data['id']+" attempted access")
-            self.redirectFailedLogin()
+            self.redirectFailedLogin(data)
             return
 
         auth_id = '%s:%s' % (provider, data['id'])
@@ -139,7 +145,7 @@ class AuthHandler(BaseHandler, SimpleAuthHandler):
                 self.auth.set_session(self.auth.store.user_to_dict(user))
                 session['auth_info'] = auth_info
             else:
-                self.redirectFailedLogin()
+                self.redirectFailedLogin(data)
                 return
 
         # Go to the main page
@@ -171,7 +177,7 @@ class AuthHandler(BaseHandler, SimpleAuthHandler):
             return False
         return True
 
-    def redirectFailedLogin(self):
+    def redirectFailedLogin(self, data):
         self.redirect('/?authfailed=true&attempt='+data['email'])
 
     def logout(self):

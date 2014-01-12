@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block head %}
+	<script type="text/javascript" src="/javascripts/main.js"></script>
 {% endblock %}
 {% block content %}
   
@@ -9,10 +10,9 @@
 	<div id="loginBtnContainer">
 		<a id="loginBtn" href="/auth/google">Login{%if user %}as {{ user.email }}{% endif %}</a>
 	</div>
-	
+
 	{%if authfailed %}
 	<p>Login was attempted for {{ attempt }}, but failed.</p>
 	{% endif %}
 
-	<script type="text/javascript" src="/javascripts/index.js"></script>
 {% endblock %}
