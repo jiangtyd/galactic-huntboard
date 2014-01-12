@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block head %}
+{% endblock %}
+{% block content %}
+  
+  <p>
+  Error. :(
+  </p>
+
+  <pre>
+    {{ exception.__class__.__name__}}: {{ exception }}
+  </pre>
+  
+{% endblock %}

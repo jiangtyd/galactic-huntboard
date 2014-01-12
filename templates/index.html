@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block head %}
+{% endblock %}
+{% block content %}
+  
+  <p>Getting permission <a href="https://drive.google.com/folderview?id=0B1zTSYJ9kTiqbkIzR3BWTnlhc3M&usp=sharing">here</a> will allow your Google account to access this website.</p>
+  
+  <a href="/auth/google" class="btn">Login</a>
+  {%if authfailed %}
+  <p>Login was attempted for {{ attempt }}, but failed.</p>
+  {% endif %}
+{% endblock %}
