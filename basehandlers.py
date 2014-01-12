@@ -4,7 +4,6 @@ import logging
 import secrets
 import urllib2
 import webapp2
-from apiclient.discovery import build
 from jinja2.runtime import TemplateNotFound
 from simpleauth import SimpleAuthHandler
 from webapp2_extras import auth, sessions, jinja2
