@@ -99,13 +99,14 @@ class RootHandler(BaseHandler):
   def get(self):
     """Handles default landing page"""
     if (self.logged_in):
-        self.render('main.html')
+        self.render('home.html')
         return
 
     context = {}
     context['authfailed'] = self.request.get('authfailed')
     context['attempt'] = self.request.get('attempt')
-    self.render('index.html', context)
+    self.render('main.html', context)
+
 
 '''
 class FileHandler(AuthHandler):

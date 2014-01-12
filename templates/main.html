@@ -4,8 +4,15 @@
 {% endblock %}
 {% block content %}
   
-  <p>
-  Nothing to see here.
-  </p>
+	<p>If you have permission to view <a href="https://drive.google.com/folderview?id=0B1zTSYJ9kTiqbkIzR3BWTnlhc3M&usp=sharing">this folder,</a> your Google account has access to this website.</p>
 
+	<div id="loginBtnContainer">
+		<a id="loginBtn" href="/auth/google">Login{%if user %}as {{ user.email }}{% endif %}</a>
+	</div>
+	
+	{%if authfailed %}
+	<p>Login was attempted for {{ attempt }}, but failed.</p>
+	{% endif %}
+
+	<script type="text/javascript" src="/javascripts/index.js"></script>
 {% endblock %}

@@ -1,5 +1,45 @@
-a, a:visited, a:hover, a:active {
-    color: blue;
+html, body {
+	width: 100%;
+	height: 100%;
+}
+
+body {
+	background-color: #ccc;
+	margin: 0;
+}
+
+#spreadsheet, #spreadsheetWrapper {
+	height: 90%;
+	width: 100%;
+}
+
+iframe {
+	frameborder: 0;
+	background-color: #fff;
+}
+
+#chat, #chatWrapper {
+	height: 250px;
+	width: 100%;
+}
+
+#callins {
+	height: 250px;
+	position: absolute;
+	right: 0;
+	top: 0;
+}
+
+#spreadsheetWrapper {
+	padding-top: 5px;
+}
+
+#chatWrapper {
+	padding-bottom: 5px;
+}
+
+.noMouseEvents {
+	pointer-events: none;
 }
 
 #footer {
