@@ -25,6 +25,7 @@ iframe {
 
 #callins {
 	height: 150px;
+	border-width: 1px;
 	position: absolute;
 	right: 0;
 	top: 0;
