@@ -23,20 +23,21 @@ and save them as 'client_secrets.json' in the project directory.
 """
 '''
 import httplib2
-import json
-import logging
 import pickle
 import random
-import urllib2
 
 from google.appengine.api import memcache, urlfetch
 from oauth2client.appengine import xsrf_secret_key
 from oauth2client.client import OAuth2WebServerFlow
 from webapp2_extras import sessions
 '''
-
-from basehandlers import AuthHandler, BaseHandler
-
+import json
+import logging
+import pages
+import urllib
+import urllib2
+from basehandlers import AuthHandler, BaseHandler, HUNT_2014_FOLDER_ID
+from google.appengine.api import urlfetch
 '''
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(
@@ -93,28 +94,87 @@ class MainHandler(AuthHandler):
         template = JINJA_ENVIRONMENT.get_template('files.html')
         self.response.write(template.render(variables))
 '''
-
+HUNT_2014_FOLDER = 'https://docs.google.com/spreadsheet/ccc?key=0Ao0dlaERwPXMdE9HdUdBT0Q1SUl3T0x2YndOM1F6aXc#gid=0'
 
 class RootHandler(BaseHandler):
-  def get(self):
-    '''Handles default landing page'''
-    if (self.logged_in):
+    def get(self):
+        '''Handles default landing page'''
+        if not self.logged_in:
+            self.login_needed()
+            return;
+
         context = {
-            'docKey': '0Ao0dlaERwPXMdE9HdUdBT0Q1SUl3T0x2YndOM1F6aXc'
+            'doc': HUNT_2014_FOLDER
         }
         self.render('puzzle.html', context)
-        return
 
-    self.login_needed()
 
 class PuzzleHandler(BaseHandler):
-  def get(self):
-    '''Handles puzzle page. Creates a spreadsheet for the page if none exists.'''
-    if (self.logged_in):
-        self.render('puzzle.html')
-        return
+    def get(self, number):
+        '''Handles puzzle page. Creates a spreadsheet for the page if none exists.'''
+        if not self.logged_in:
+            self.login_needed()
+            return;
 
-    self.login_needed()
+        page = pages.getPageForIndex(number)
+        if page != None:
+            sheet_link = page.spreadsheet_link
+        else:
+            sheet_id, sheet_link = self.createEmptySpreadsheet(number)
+            # Spreadsheet creation failed
+            if sheet_id == '':
+                raise Exception('Spreadsheet creation failed.')
+            result = pages.putPageForIndex(number, sheet_id, sheet_link)
+            # If while we were doing this, a page was already added for this index
+            # in the database, delete the page we just created and use the link to
+            # the existing page.
+            if result != True:
+                self.trashFile(sheet_id)
+                sheet_link = result
+        logging.info("sheet link")
+        logging.info(sheet_link)
+        context = {
+            'doc': sheet_link
+        }
+        self.render('puzzle.html', context)
+
+
+    def createEmptySpreadsheet(self, number):
+        try:
+            url = 'https://www.googleapis.com/upload/drive/v2/files?uploadType=media'
+            body = {
+                'title': 'Hunt '+number,
+                'mimeType': 'application/vnd.google-apps.spreadsheet',
+                'parents': {'id': HUNT_2014_FOLDER_ID}
+            }
+            body_data = urllib.urlencode(body)
+            result = urlfetch.fetch(url=url,
+                payload=body_data,
+                method=urlfetch.POST,
+                headers={
+                    'Authorization': 'Bearer '+self.session.get('token'),
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            )
+            contents = json.loads(result.content)
+            logging.info(contents)
+            return (contents['id'], contents['selfLink'])
+        except urllib2.URLError, e:
+            contents = json.loads(e.read())
+            logging.error(e)
+            logging.info(contents)
+        return ('', '')
+
+    # Only trash, don't delete files in case something goes wrong
+    def trashFile(self, file_id):
+        url = 'https://www.googleapis.com/drive/v2/files/'+file_id+'/trash'
+        result = urlfetch.fetch(url=url,
+            method=urlfetch.POST,
+            headers={
+                'Authorization': 'Bearer '+auth_info['access_token'],
+            }
+        )
+
 '''
 class FileHandler(AuthHandler):
     def get(self):

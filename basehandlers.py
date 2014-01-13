@@ -2,15 +2,18 @@ import httplib2
 import json
 import logging
 import secrets
+import urllib
 import urllib2
 import webapp2
 from jinja2.runtime import TemplateNotFound
 from simpleauth import SimpleAuthHandler
 from webapp2_extras import auth, sessions, jinja2
-import urllib
 
 from google.appengine.api import urlfetch
 
+
+
+HUNT_2014_FOLDER_ID = "0B1zTSYJ9kTiqbkIzR3BWTnlhc3M"
 
 # Extend the base handler for session configuration
 class BaseHandler(webapp2.RequestHandler):
@@ -132,9 +135,8 @@ class AuthHandler(BaseHandler, SimpleAuthHandler):
             # from the datastore and update local user in case something's changed.
             user.populate(**_attrs)
             user.put()
-            self.auth.set_session(
-                self.auth.store.user_to_dict(user))
-          
+            self.auth.set_session(self.auth.store.user_to_dict(user))
+            self.session['token'] = auth_info['access_token']
         else:
             # Create a new user if nobody's signed in, and the user is on the
             # galactic-dogesetters google group,
@@ -143,7 +145,7 @@ class AuthHandler(BaseHandler, SimpleAuthHandler):
             ok, user = self.auth.store.user_model.create_user(auth_id, **_attrs)
             if ok:
                 self.auth.set_session(self.auth.store.user_to_dict(user))
-                session['auth_info'] = auth_info
+                self.session['token'] = auth_info['access_token']
             else:
                 self.redirectFailedLogin(data)
                 return
@@ -153,7 +155,6 @@ class AuthHandler(BaseHandler, SimpleAuthHandler):
        
     def checkForAccessRights(self, data, auth_info):
         # Allow login to the website iff user has access to Hunt 2014 folder
-        FILE_ID = "0B1zTSYJ9kTiqbkIzR3BWTnlhc3M"
         
         try:
             # Get permission ID for this user
@@ -165,7 +166,7 @@ class AuthHandler(BaseHandler, SimpleAuthHandler):
             pId = contents["id"]
 
             # Check for permission on the file
-            url = "https://www.googleapis.com/drive/v2/files/"+FILE_ID+"/permissions/"+pId
+            url = "https://www.googleapis.com/drive/v2/files/"+HUNT_2014_FOLDER_ID+"/permissions/"+pId
             req = urllib2.Request(url)
             req.add_header('Authorization', 'Bearer '+auth_info['access_token'])
             resp = urllib2.urlopen(req)
