@@ -1,3 +1,4 @@
+import datetime
 import httplib2
 import json
 import logging
@@ -6,6 +7,8 @@ import urllib
 import urllib2
 import webapp2
 from jinja2.runtime import TemplateNotFound
+from oauth2client import GOOGLE_REVOKE_URI, GOOGLE_TOKEN_URI
+from oauth2client.client import OAuth2Credentials
 from simpleauth import SimpleAuthHandler
 from webapp2_extras import auth, sessions, jinja2
 
@@ -61,6 +64,24 @@ class BaseHandler(webapp2.RequestHandler):
     def logged_in(self):
         """Returns true if a user is currently logged in, false otherwise"""
         return self.auth.get_user_by_session() is not None
+
+    @webapp2.cached_property
+    def credentials(self) :
+        if not self.session.get('auth_info',None):
+            return None
+        auth_info = self.session['auth_info']
+        expiry = datetime.datetime.utcnow() + datetime.timedelta(seconds=int(auth_info['expires_in']))
+        return OAuth2Credentials(
+            auth_info['access_token'], 
+            secrets.GOOGLE_APP_ID, 
+            secrets.GOOGLE_APP_SECRET, 
+            refresh_token=None,
+            token_expiry=expiry,
+            token_uri=GOOGLE_TOKEN_URI,
+            user_agent=None,
+            revoke_uri=GOOGLE_REVOKE_URI,
+            id_token=auth_info['id_token'],
+            token_response=auth_info)
 
     def login_needed(self):
         context = {}
@@ -136,7 +157,7 @@ class AuthHandler(BaseHandler, SimpleAuthHandler):
             user.populate(**_attrs)
             user.put()
             self.auth.set_session(self.auth.store.user_to_dict(user))
-            self.session['token'] = auth_info['access_token']
+            self.setCredentials(auth_info)
         else:
             # Create a new user if nobody's signed in, and the user is on the
             # galactic-dogesetters google group,
@@ -145,13 +166,16 @@ class AuthHandler(BaseHandler, SimpleAuthHandler):
             ok, user = self.auth.store.user_model.create_user(auth_id, **_attrs)
             if ok:
                 self.auth.set_session(self.auth.store.user_to_dict(user))
-                self.session['token'] = auth_info['access_token']
+                self.setCredentials(auth_info)
             else:
                 self.redirectFailedLogin(data)
                 return
 
         # Go to the main page
         self.redirect('/')
+
+    def setCredentials(self, auth_info) :
+        self.session['auth_info'] = auth_info
        
     def checkForAccessRights(self, data, auth_info):
         # Allow login to the website iff user has access to Hunt 2014 folder

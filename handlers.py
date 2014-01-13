@@ -31,11 +31,14 @@ from oauth2client.appengine import xsrf_secret_key
 from oauth2client.client import OAuth2WebServerFlow
 from webapp2_extras import sessions
 '''
+import httplib2
 import json
 import logging
 import pages
+import pprint
 import urllib
 import urllib2
+from apiclient.discovery import build
 from basehandlers import AuthHandler, BaseHandler, HUNT_2014_FOLDER_ID
 from google.appengine.api import urlfetch
 '''
@@ -131,8 +134,6 @@ class PuzzleHandler(BaseHandler):
             if result != True:
                 self.trashFile(sheet_id)
                 sheet_link = result
-        logging.info("sheet link")
-        logging.info(sheet_link)
         context = {
             'doc': sheet_link
         }
@@ -140,30 +141,17 @@ class PuzzleHandler(BaseHandler):
 
 
     def createEmptySpreadsheet(self, number):
-        try:
-            url = 'https://www.googleapis.com/upload/drive/v2/files?uploadType=media'
-            body = {
-                'title': 'Hunt '+number,
-                'mimeType': 'application/vnd.google-apps.spreadsheet',
-                'parents': {'id': HUNT_2014_FOLDER_ID}
-            }
-            body_data = urllib.urlencode(body)
-            result = urlfetch.fetch(url=url,
-                payload=body_data,
-                method=urlfetch.POST,
-                headers={
-                    'Authorization': 'Bearer '+self.session.get('token'),
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                }
-            )
-            contents = json.loads(result.content)
-            logging.info(contents)
-            return (contents['id'], contents['selfLink'])
-        except urllib2.URLError, e:
-            contents = json.loads(e.read())
-            logging.error(e)
-            logging.info(contents)
-        return ('', '')
+        http = self.credentials.authorize(httplib2.Http())
+        drive_service = build('drive', 'v2', http=http)
+        body = {
+            'title': '2014.'+number,
+            'mimeType': 'application/vnd.google-apps.spreadsheet',
+            'parents': [{'id': HUNT_2014_FOLDER_ID}]
+        }
+        logging.info("#$%^&*()(*&^&*(&^%$^&*(^%$^&*(&^%$^&*&^%&")
+        logging.info(body);
+        file = drive_service.files().insert(body=body).execute()
+        return (file['id'], file['alternateLink'])
 
     # Only trash, don't delete files in case something goes wrong
     def trashFile(self, file_id):
