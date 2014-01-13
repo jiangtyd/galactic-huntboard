@@ -19,12 +19,12 @@ iframe {
 }
 
 #chat, #chatWrapper {
-	height: 250px;
+	height: 150px;
 	width: 100%;
 }
 
 #callins {
-	height: 250px;
+	height: 150px;
 	position: absolute;
 	right: 0;
 	top: 0;

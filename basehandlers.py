@@ -2,21 +2,21 @@ import datetime
 import httplib2
 import json
 import logging
+import pages
 import secrets
 import urllib
 import urllib2
 import webapp2
+from google.appengine.api import urlfetch
 from jinja2.runtime import TemplateNotFound
-from oauth2client import GOOGLE_REVOKE_URI, GOOGLE_TOKEN_URI
-from oauth2client.client import OAuth2Credentials
+from oauth2client.client import AccessTokenCredentials
 from simpleauth import SimpleAuthHandler
 from webapp2_extras import auth, sessions, jinja2
-
-from google.appengine.api import urlfetch
 
 
 
 HUNT_2014_FOLDER_ID = "0B1zTSYJ9kTiqbkIzR3BWTnlhc3M"
+HUNTBOARD_NAME = "Huntboard"
 
 # Extend the base handler for session configuration
 class BaseHandler(webapp2.RequestHandler):
@@ -64,24 +64,6 @@ class BaseHandler(webapp2.RequestHandler):
     def logged_in(self):
         """Returns true if a user is currently logged in, false otherwise"""
         return self.auth.get_user_by_session() is not None
-
-    @webapp2.cached_property
-    def credentials(self) :
-        if not self.session.get('auth_info',None):
-            return None
-        auth_info = self.session['auth_info']
-        expiry = datetime.datetime.utcnow() + datetime.timedelta(seconds=int(auth_info['expires_in']))
-        return OAuth2Credentials(
-            auth_info['access_token'], 
-            secrets.GOOGLE_APP_ID, 
-            secrets.GOOGLE_APP_SECRET, 
-            refresh_token=None,
-            token_expiry=expiry,
-            token_uri=GOOGLE_TOKEN_URI,
-            user_agent=None,
-            revoke_uri=GOOGLE_REVOKE_URI,
-            id_token=auth_info['id_token'],
-            token_response=auth_info)
 
     def login_needed(self):
         context = {}
@@ -157,7 +139,7 @@ class AuthHandler(BaseHandler, SimpleAuthHandler):
             user.populate(**_attrs)
             user.put()
             self.auth.set_session(self.auth.store.user_to_dict(user))
-            self.setCredentials(auth_info)
+            self.setCredentials(data, auth_info)
         else:
             # Create a new user if nobody's signed in, and the user is on the
             # galactic-dogesetters google group,
@@ -166,7 +148,7 @@ class AuthHandler(BaseHandler, SimpleAuthHandler):
             ok, user = self.auth.store.user_model.create_user(auth_id, **_attrs)
             if ok:
                 self.auth.set_session(self.auth.store.user_to_dict(user))
-                self.setCredentials(auth_info)
+                self.setCredentials(data, auth_info)
             else:
                 self.redirectFailedLogin(data)
                 return
@@ -174,8 +156,9 @@ class AuthHandler(BaseHandler, SimpleAuthHandler):
         # Go to the main page
         self.redirect('/')
 
-    def setCredentials(self, auth_info) :
-        self.session['auth_info'] = auth_info
+    def setCredentials(self, data, auth_info) :
+        credentials = AccessTokenCredentials(auth_info['access_token'], None)
+        pages.setCred(HUNTBOARD_NAME, data['id'], credentials)
        
     def checkForAccessRights(self, data, auth_info):
         # Allow login to the website iff user has access to Hunt 2014 folder
@@ -209,9 +192,12 @@ class AuthHandler(BaseHandler, SimpleAuthHandler):
        self.auth.unset_session()
        self.redirect('/')
 
+    '''
+    # Commenting this out; not like our error page looks any better than app engine's.
     def handle_exception(self, exception, debug):
         logging.error(exception)
         self.render('error.html', {'exception': exception})
+    '''
 
     def _callback_uri_for(self, provider):
        return self.uri_for('auth_callback', provider=provider, _full=True)

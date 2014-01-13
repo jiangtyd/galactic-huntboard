@@ -39,7 +39,7 @@ import pprint
 import urllib
 import urllib2
 from apiclient.discovery import build
-from basehandlers import AuthHandler, BaseHandler, HUNT_2014_FOLDER_ID
+from basehandlers import AuthHandler, BaseHandler, HUNT_2014_FOLDER_ID, HUNTBOARD_NAME
 from google.appengine.api import urlfetch
 '''
 JINJA_ENVIRONMENT = jinja2.Environment(
@@ -141,7 +141,8 @@ class PuzzleHandler(BaseHandler):
 
 
     def createEmptySpreadsheet(self, number):
-        http = self.credentials.authorize(httplib2.Http())
+        credentials = pages.getCred(HUNTBOARD_NAME, self.current_user.id)
+        http = credentials.authorize(httplib2.Http())
         drive_service = build('drive', 'v2', http=http)
         body = {
             'title': '2014.'+number,
