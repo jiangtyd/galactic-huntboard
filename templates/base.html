@@ -10,9 +10,6 @@
   <body>
     <div id="content">{% block content %}{% endblock %}</div>
     <div id="footer">
-        {% block footer %}
-        Galactic Huntboard. {% if logged_in %}You are logged in as {{ user.email }}. <a href="/logout" class="btn">Logout</a>{% endif %}
-        {% endblock %}
     </div>
   </body>
 </html>

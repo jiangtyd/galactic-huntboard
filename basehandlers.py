@@ -1,3 +1,6 @@
+# Authentication handler and extensible handler. All other handlers should go in handlers.py,
+# extend BaseHandler and follow the if logged_in pattern.
+
 import datetime
 import httplib2
 import json
@@ -100,6 +103,7 @@ class AuthHandler(BaseHandler, SimpleAuthHandler):
           'name'        : 'name',
           'id'          : 'id',
           'given_name'  : 'given_name',
+          'family_name' : 'family_name',
           'email'       : 'email',
         }
     }

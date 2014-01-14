@@ -2,8 +2,9 @@
 
 $( document ).ready(function() {
     $('#chatWrapper').resizable({
-        alsoResize: '#chat, #callins',
+        alsoResize: '#chat',
         handles: 's',
+        minHeight: 115,
         start: function() {
             $('#chatWrapper').addClass('noMouseEvents');
             $('#spreadsheetWrapper').addClass('noMouseEvents');

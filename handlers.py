@@ -59,7 +59,10 @@ class ChatHandler(BaseHandler):
             self.login_needed()
             return;
 
-        self.render('chat.html')
+        context = {
+            'index': number
+        }
+        self.render('chat.html', context)
 
 class MainChatHandler(BaseHandler):
     def get(self):
@@ -68,6 +71,9 @@ class MainChatHandler(BaseHandler):
             self.login_needed()
             return;
 
+        context = {
+            'index': 0
+        },
         self.render('chat.html')
 
 class PuzzleHandler(BaseHandler):
