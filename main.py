@@ -30,9 +30,8 @@ routes = [
   Route('/auth/<provider>/callback', 
     handler='handlers.AuthHandler:_auth_callback', name='auth_callback'),
   # Reserving 800-999 for testing
-  Route('/2014/<number:[1-7]\d{,2}>', handler='handlers.PuzzleHandler'),
-  Route('/2014/chat/<number:[1-7]\d{,2}>', handler='handlers.ChatHandler'),
-  Route('/2014/chat/0', handler='handlers.MainChatHandler'),
+  Route('/2014/<number:[1-9]\d{,1}|[1-7]\d{2}>', handler='handlers.PuzzleHandler'),
+  Route('/2014/chat/<number:0|[1-9]\d{,1}|[1-7]\d{,2}>', handler='handlers.ChatHandler'),
 ]
 
 app = WSGIApplication(routes, config=app_config, debug=True)
