@@ -8,11 +8,18 @@
 {% endblock %}
 {% block content %}
   
-<div id="chatWrapper">
-	<iframe id="chat" seamless="seamless"  src="/2014/chat/{{ index }}"></iframe>
-	<iframe id="callins" seamless="seamless"  src="http://www.something.com"></iframe>
+<div>
+	<div id="chatWrapper">
+		<iframe id="chat" seamless="seamless" src="/2014/chat/{{ index }}"></iframe>
+	</div>
+	<div id="spreadsheetWrapper">
+		<iframe id="spreadsheet" seamless="seamless" src="{{ doc }}"></iframe>
+	</div>
 </div>
-<div id="spreadsheetWrapper">
-	<iframe id="spreadsheet" seamless="seamless" src="{{ doc }}"></iframe>
+<div id="callins" seamless="seamless">
+	{% block footer %}
+		Galactic Huntboard. {% if logged_in %}You are logged in as {{ user.email }}. <a href="/logout" class="btn">Logout</a>{% endif %}
+	{% endblock %}
 </div>
+
 {% endblock %}
