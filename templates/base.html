@@ -2,7 +2,7 @@
   <head>
     <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
     <script type="text/javascript" src="https://apis.google.com/js/api.js"></script>
-
+    <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
     {% block head %}
     {% endblock %}
     <title>Galactic Huntboard</title>
@@ -10,6 +10,11 @@
   <body>
     <div id="content">{% block content %}{% endblock %}</div>
     <div id="footer">
+      <div id="callins">
+        {% block footer %}
+          <a href="/" >Galactic Huntboard.</a> {% if logged_in %}You are logged in as {{ user.email }}. <a href="{{ uri_for('logout') }}" class="btn">Logout</a>{% endif %}
+        {% endblock %}
+      </div>
     </div>
   </body>
 </html>

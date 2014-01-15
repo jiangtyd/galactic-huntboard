@@ -1,15 +1,9 @@
 {% extends "base.html" %}
 
 {% block head %}
-    <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
 {% endblock %}
 {% block content %}
   
 <iframe id="puzzlesheet" seamless="seamless" src="{{ doc }}"></iframe>
-<div id="callins">
-	{% block footer %}
-		Galactic Huntboard. {% if logged_in %}You are logged in as {{ user.email }}. <a href="{{ uri_for('logout') }}" class="btn">Logout</a>{% endif %}
-	{% endblock %}
-</div>
 
 {% endblock %}
