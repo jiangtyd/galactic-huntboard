@@ -17,7 +17,6 @@
 
 import httplib2
 import json
-import logging
 import pages
 import pprint
 import urllib
@@ -102,8 +101,6 @@ class PuzzleHandler(BaseHandler):
             'mimeType': 'application/vnd.google-apps.spreadsheet',
             'parents': [{'id': HUNT_2014_FOLDER_ID}]
         }
-        logging.info("#$%^&*()(*&^&*(&^%$^&*(^%$^&*(&^%$^&*&^%&")
-        logging.info(body);
         file = drive_service.files().insert(body=body).execute()
         return (file['id'], file['alternateLink'])
 
