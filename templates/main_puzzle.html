@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block head %}
+  	<script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+	<script type="text/javascript" src="/javascripts/main_puzzle.js"></script>
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+{% endblock %}
+{% block content %}
+  
+<div>
+	<div id="chatWrapper">
+		<iframe id="chat" seamless="seamless" src="{{ uri_for('chat', number=index) }}"></iframe>
+	</div>
+	<div id="spreadsheetWrapper">
+		<iframe id="spreadsheet" seamless="seamless" src="{{ doc }}"></iframe>
+	</div>
+</div>
+
+{% endblock %}
