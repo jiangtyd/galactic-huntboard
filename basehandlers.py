@@ -21,12 +21,12 @@ from webapp2_extras import auth, sessions, jinja2
 HUNT_2014_FOLDER_ID = "0B1zTSYJ9kTiqbkIzR3BWTnlhc3M"
 HUNTBOARD_NAME = "Huntboard"
 
-GOOGLE_SCOPES = ' '.join(
+GOOGLE_SCOPES = ' '.join([
     'https://www.googleapis.com/auth/userinfo.profile',
     'https://www.googleapis.com/auth/drive.file',
     'https://www.googleapis.com/auth/drive.readonly.metadata',
     'https://www.googleapis.com/auth/userinfo.email',
-)
+])
 
 AUTH_CONFIG = {
     # OAuth 2.0 providers
