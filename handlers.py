@@ -93,7 +93,7 @@ class PuzzleHandler(BaseHandler):
 
 
     def createEmptySpreadsheet(self, number):
-        credentials = pages.getCred(HUNTBOARD_NAME, self.current_user.id)
+        credentials = pages.getCred(HUNTBOARD_NAME, self.auth.get_user_by_session()['user_id'])
         http = credentials.authorize(httplib2.Http())
         drive_service = build('drive', 'v2', http=http)
         body = {
