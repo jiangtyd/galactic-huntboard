@@ -58,8 +58,19 @@ class ChatHandler(BaseHandler):
             self.login_needed()
             return
 
+        nick = self.current_user.given_name + self.current_user.family_name
+
+        chat_args = [
+            ('channels', 'galdoge'),
+            ('nick', nick),
+        ]
+        # qwebirc requires quote, not quote_plus
+        chat_frame = 'http://webchat.quakenet.org/?' + \
+            '&'.join(urllib.quote(k) + '=' + urllib.quote(v)
+                     for k, v in chat_args)
+
         context = {
-            'index': number
+            'chat_frame': chat_frame,
         }
         self.render('chat.html', context)
 
