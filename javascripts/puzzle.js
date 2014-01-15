@@ -14,4 +14,19 @@ $( document ).ready(function() {
             $('#spreadsheetWrapper').removeClass('noMouseEvents');
         }
     });
+
+
+    document.getElementById("chatWrapper").onmouseenter = disable_scroll;
+    document.getElementById("chatWrapper").onmouseleave = enable_scroll;
+
 });
+
+function disable_scroll()
+{
+    document.getElementById("bodyId").style.overflow="hidden";
+}
+
+function enable_scroll()
+{
+    document.getElementById("bodyId").style.overflow="auto";
+}
