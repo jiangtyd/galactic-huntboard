@@ -196,12 +196,9 @@ class AuthHandler(BaseHandler, SimpleAuthHandler):
        self.auth.unset_session()
        self.redirect('/')
 
-    '''
-    # Commenting this out; not like our error page looks any better than app engine's.
     def handle_exception(self, exception, debug):
         logging.error(exception)
         self.render('error.html', {'exception': exception})
-    '''
 
     def _callback_uri_for(self, provider):
        return self.uri_for('auth_callback', provider=provider, _full=True)
