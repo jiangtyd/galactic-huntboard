@@ -66,7 +66,7 @@ class ChatHandler(BaseHandler):
         ]
         # qwebirc requires quote, not quote_plus
         # http://hg.qwebirc.org/qwebirc/issue/323
-        chat_frame = 'http://webchat.quakenet.org/?' + \
+        chat_frame = '//webchat.quakenet.org/?' + \
             '&'.join(urllib.quote(k) + '=' + urllib.quote(v)
                      for k, v in chat_args)
 
