@@ -21,6 +21,18 @@ from webapp2_extras import auth, sessions, jinja2
 HUNT_2014_FOLDER_ID = "0B1zTSYJ9kTiqbkIzR3BWTnlhc3M"
 HUNTBOARD_NAME = "Huntboard"
 
+GOOGLE_SCOPES = ' '.join(
+    'https://www.googleapis.com/auth/userinfo.profile',
+    'https://www.googleapis.com/auth/drive.file',
+    'https://www.googleapis.com/auth/drive.readonly.metadata',
+    'https://www.googleapis.com/auth/userinfo.email',
+)
+
+AUTH_CONFIG = {
+    # OAuth 2.0 providers
+    'google': (secrets.GOOGLE_APP_ID, secrets.GOOGLE_APP_SECRET, GOOGLE_SCOPES),
+}
+
 # Extend the base handler for session configuration
 class BaseHandler(webapp2.RequestHandler):
     def dispatch(self):
@@ -209,7 +221,7 @@ class AuthHandler(BaseHandler, SimpleAuthHandler):
         For OAuth 2.0 it should be a 3 elements tuple:
         (client_ID, client_secret, scopes)
         """
-        return secrets.AUTH_CONFIG[provider]
+        return AUTH_CONFIG[provider]
     
     def _to_user_model_attrs(self, data, attrs_map):
         """Get the needed information from the provider dataset."""
