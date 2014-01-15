@@ -36,7 +36,7 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 
 
 
-HUNT_2014_FOLDER = 'https://docs.google.com/spreadsheet/ccc?key=0Ao0dlaERwPXMdE9HdUdBT0Q1SUl3T0x2YndOM1F6aXc#gid=0'
+HUNT_2014_MAIN_SPREADSHEET = 'https://docs.google.com/spreadsheet/ccc?key=0Ao0dlaERwPXMdE9HdUdBT0Q1SUl3T0x2YndOM1F6aXc#gid=0'
 
 class RootHandler(BaseHandler):
     def get(self):
@@ -47,9 +47,9 @@ class RootHandler(BaseHandler):
 
         context = {
             'index': 0,
-            'doc': HUNT_2014_FOLDER
+            'doc': HUNT_2014_MAIN_SPREADSHEET
         }
-        self.render('puzzle.html', context)
+        self.render('main_puzzle.html', context)
 
 class ChatHandler(BaseHandler):
     def get(self, number):
