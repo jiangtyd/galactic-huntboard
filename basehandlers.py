@@ -77,7 +77,7 @@ class BaseHandler(webapp2.RequestHandler):
     def render(self, template_name, template_vars={}):
         # Preset values for the template
         values = {
-          'url_for': self.uri_for,
+          'uri_for': self.uri_for,
           'logged_in': self.logged_in,
           'user': self.current_user,
           'flashes': self.session.get_flashes()
