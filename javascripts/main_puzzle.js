@@ -1,19 +1,19 @@
 'use strict';
 
 $( document ).ready(function() {
-    $('#spreadsheetWrapper').height($(window).height()-$("#chatWrapper").height()+90);
+    $('#spreadsheetWrapper').height($(window).height()-$("#chatWrapper").height());
 
     window.onresize = function(event) {
-        $('#spreadsheetWrapper').height($(window).height()-$("#chatWrapper").height()+90);
+        $('#spreadsheetWrapper').height($(window).height()-$("#chatWrapper").height());
     }
 
     $('#chatWrapper').resizable({
         alsoResize: '#chat',
         alsoResizeReverse: '#spreadsheetWrapper',
         handles: 's',
-        minHeight: 115,
+        minHeight: 25,
         resize: function() {
-            $('#spreadsheetWrapper').height($(window).height()-$("#chatWrapper").height()+90);
+            $('#spreadsheetWrapper').height($(window).height()-$("#chatWrapper").height()-$("callins").height());
         },
         start: function() {
             $('#chatWrapper').addClass('noMouseEvents');
