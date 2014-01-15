@@ -44,7 +44,7 @@ class RootHandler(BaseHandler):
         '''Handles default landing page'''
         if not self.logged_in:
             self.login_needed()
-            return;
+            return
 
         context = {
             'index': 0,
@@ -57,11 +57,11 @@ class ChatHandler(BaseHandler):
         '''Handles chat portion of the puzzle page.'''
         if not self.logged_in:
             self.login_needed()
-            return;
+            return
 
         context = {
             'index': number
-        },
+        }
         self.render('chat.html', context)
 
 class MainChatHandler(BaseHandler):
@@ -73,15 +73,15 @@ class MainChatHandler(BaseHandler):
 
         context = {
             'index': 0
-        },
-        self.render('chat.html')
+        }
+        self.render('chat.html', context)
 
 class PuzzleHandler(BaseHandler):
     def get(self, number):
         '''Handles puzzle page. Creates a spreadsheet for the page if none exists.'''
         if not self.logged_in:
             self.login_needed()
-            return;
+            return
 
         page = pages.getPageForIndex(number)
         if page != None:

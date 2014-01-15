@@ -10,7 +10,7 @@
   
 <div>
 	<div id="chatWrapper">
-		<iframe id="chat" seamless="seamless" src="/2014/chat/{{ index }}"></iframe>
+		<iframe id="chat" seamless="seamless" src="{{ uri_for('chat', number=index) }}"></iframe>
 	</div>
 	<div id="spreadsheetWrapper">
 		<iframe id="spreadsheet" seamless="seamless" src="{{ doc }}"></iframe>
@@ -18,7 +18,7 @@
 </div>
 <div id="callins" seamless="seamless">
 	{% block footer %}
-		Galactic Huntboard. {% if logged_in %}You are logged in as {{ user.email }}. <a href="/logout" class="btn">Logout</a>{% endif %}
+		Galactic Huntboard. {% if logged_in %}You are logged in as {{ user.email }}. <a href="{{ uri_for('logout') }}" class="btn">Logout</a>{% endif %}
 	{% endblock %}
 </div>
 
