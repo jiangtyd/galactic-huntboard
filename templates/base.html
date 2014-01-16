@@ -11,7 +11,7 @@
     <div id="footer">
       <div id="callins">
         {% block footer %}
-          <a href="/" >Galactic Huntboard.</a> {% if logged_in %}You are logged in as {{ user.email }}. <a href="{{ uri_for('logout') }}" class="btn">Logout</a>{% endif %}
+          <a href="/" >Galactic Huntboard.</a> {% if logged_in %}You are logged in as {{ user.email }}. <a href="{{ uri_for('logout') }}" class="btn">Logout</a> <a href="http://galdoge.kaseorg.com/wow/quakenet/" target="_blank">IRC logs</a>{% endif %}
         {% endblock %}
       </div>
     </div>
