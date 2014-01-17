@@ -16,6 +16,7 @@
 #
 
 import json
+import httplib2
 import logging
 import pages
 import urllib
@@ -104,6 +105,9 @@ class PuzzleHandler(BaseHandler):
 
     @oauth_decorator.oauth_required
     def createEmptySpreadsheet(self, number):
+        resp, content = httplib2.Http().request('http://galdoge.kaseorg.com/cgi-bin/suchbot-new-channel.cgi?' + urllib.urlencode({'id': number}))
+        assert resp.status == 200
+
         http = oauth_decorator.http()
         body = {
             'title': '2014.'+number,
