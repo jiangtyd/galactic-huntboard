@@ -14,6 +14,7 @@ from functools import wraps
 from google.appengine.api import users
 from jinja2.runtime import TemplateNotFound
 from oauth2client.appengine import OAuth2DecoratorFromClientSecrets
+from oauth2client.client import TokenRevokeError
 from webapp2_extras import auth, sessions, jinja2
 
 
@@ -172,10 +173,13 @@ class BaseHandler(webapp2.RequestHandler):
 
     @oauth_decorator.oauth_aware
     def logout(self):
-       if oauth_decorator.has_credentials():
-           oauth_decorator.credentials.revoke(oauth_decorator.http())
-       self.auth.unset_session()
-       self.redirect('/')
+        if oauth_decorator.has_credentials():
+            try:
+                oauth_decorator.credentials.revoke(oauth_decorator.http())
+            except TokenRevokeError:
+                pass
+        self.auth.unset_session()
+        self.redirect('/')
 
     def _to_user_model_attrs(self, data, attrs_map):
         """Get the needed information from the provider dataset."""
