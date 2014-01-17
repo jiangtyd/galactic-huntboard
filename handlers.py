@@ -58,8 +58,13 @@ class ChatHandler(BaseHandler):
 
         nick = self.current_user.given_name + self.current_user.family_name
 
+        if number == '0':
+            channels = 'galdoge-callqueue,galdoge verytrendy!,verytrendy!'
+        else:
+            channels = 'galdoge-%s verytrendy!' % (number,)
+
         chat_args = [
-            ('channels', 'galdoge-callqueue,galdoge verytrendy!,verytrendy!'),
+            ('channels', channels),
             ('nick', nick),
         ]
         # qwebirc requires quote, not quote_plus
