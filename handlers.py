@@ -15,15 +15,12 @@
 # limitations under the License.
 #
 
-import httplib2
 import json
 import logging
 import pages
-import pprint
 import urllib
-import urllib2
 from apiclient.discovery import build
-from basehandlers import BaseHandler, HUNT_2014_FOLDER_ID, HUNTBOARD_NAME, oauth_decorator
+from basehandlers import BaseHandler, HUNT_2014_FOLDER_ID, HUNTBOARD_NAME, drive_service, oauth_decorator
 from google.appengine.api import urlfetch, users
 
 '''
@@ -33,9 +30,6 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     autoescape=True,
     extensions=['jinja2.ext.autoescape'])
 '''
-# DRIVE = discovery.build('drive', 'v2', http=httplib2.Http())
-
-
 
 HUNT_2014_MAIN_SPREADSHEET = 'https://docs.google.com/spreadsheet/ccc?key=0Ao0dlaERwPXMdE9HdUdBT0Q1SUl3T0x2YndOM1F6aXc#gid=0'
 
@@ -111,17 +105,15 @@ class PuzzleHandler(BaseHandler):
     @oauth_decorator.oauth_required
     def createEmptySpreadsheet(self, number):
         http = oauth_decorator.http()
-        drive_service = build('drive', 'v2', http=http)
         body = {
             'title': '2014.'+number,
             'mimeType': 'application/vnd.google-apps.spreadsheet',
             'parents': [{'id': HUNT_2014_FOLDER_ID}]
         }
-        file = drive_service.files().insert(body=body).execute()
+        file = drive_service.files().insert(body=body).execute(http=http)
         return (file['id'], file['alternateLink'])
 
     # Only trash, don't delete files in case something goes wrong
     def trashFile(self, file_id):
         http = oauth_decorator.http()
-        url = 'https://www.googleapis.com/drive/v2/files/'+file_id+'/trash'
-        http.request(url, method='POST')
+        drive_service.files().trash(fileId=file_id).execute(http=http)

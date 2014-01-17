@@ -2,14 +2,14 @@
 # extend BaseHandler and follow the if logged_in pattern.
 
 import datetime
-import httplib2
 import json
 import logging
 import os
 import pages
 import secrets
-import urllib
 import webapp2
+from apiclient.discovery import build
+from apiclient.errors import HttpError
 from functools import wraps
 from google.appengine.api import users
 from jinja2.runtime import TemplateNotFound
@@ -32,6 +32,9 @@ GOOGLE_SCOPES = ' '.join([
 oauth_decorator = OAuth2DecoratorFromClientSecrets(
     os.path.join(os.path.dirname(__file__), 'client_secrets.json'),
     GOOGLE_SCOPES)
+
+oauth2_service = build('oauth2', 'v2')
+drive_service = build('drive', 'v2')
 
 # Extend the base handler for session configuration
 class BaseHandler(webapp2.RequestHandler):
@@ -131,10 +134,10 @@ class BaseHandler(webapp2.RequestHandler):
             # galactic-dogesetters google group,
 
             http = oauth_decorator.http()
-            resp, content = http.request('https://www.googleapis.com/oauth2/v3/userinfo')
-            if resp.status != 200:
+            try:
+                data = oauth2_service.userinfo().get().execute(http=http)
+            except HttpError:
                 return False
-            data = json.loads(content)
             _attrs = self._to_user_model_attrs(data, self.USER_ATTRS['google'])
 
             logging.info('Creating a brand new user')
@@ -149,24 +152,10 @@ class BaseHandler(webapp2.RequestHandler):
         # Allow login to the website iff user has access to Hunt 2014 folder
         
         try:
-            # Get permission ID for this user
-            url = "https://www.googleapis.com/drive/v2/permissionIds/"+user.email()
             http = oauth_decorator.http()
-            resp, content = http.request(url)
-            if resp.status != 200:
-                logging.info(content)
-                return False
-            contents = json.loads(content)
-            pId = contents["id"]
-
-            # Check for permission on the file
-            url = "https://www.googleapis.com/drive/v2/files/"+HUNT_2014_FOLDER_ID+"/permissions/"+pId
-            resp, content = http.request(url)
-            if resp.status != 200:
-                logging.info(content)
-                return False
-
-        except httplib2.HttpLib2Error, e:
+            pId = drive_service.permissions().getIdForEmail(email=user.email()).execute(http=http)['id']
+            drive_service.permissions().get(fileId=HUNT_2014_FOLDER_ID, permissionId=pId).execute(http=http)
+        except HttpError, e:
             logging.error(e)
             return False
         return True
