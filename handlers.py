@@ -17,13 +17,14 @@
 
 import httplib2
 import json
+import logging
 import pages
 import pprint
 import urllib
 import urllib2
 from apiclient.discovery import build
-from basehandlers import AuthHandler, BaseHandler, HUNT_2014_FOLDER_ID, HUNTBOARD_NAME
-from google.appengine.api import urlfetch
+from basehandlers import BaseHandler, HUNT_2014_FOLDER_ID, HUNTBOARD_NAME, oauth_decorator
+from google.appengine.api import urlfetch, users
 
 '''
 JINJA_ENVIRONMENT = jinja2.Environment(
@@ -39,6 +40,7 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 HUNT_2014_MAIN_SPREADSHEET = 'https://docs.google.com/spreadsheet/ccc?key=0Ao0dlaERwPXMdE9HdUdBT0Q1SUl3T0x2YndOM1F6aXc#gid=0'
 
 class RootHandler(BaseHandler):
+    @oauth_decorator.oauth_required
     def get(self):
         '''Handles default landing page'''
         if not self.logged_in:
@@ -52,6 +54,7 @@ class RootHandler(BaseHandler):
         self.render('main_puzzle.html', context)
 
 class ChatHandler(BaseHandler):
+    @oauth_decorator.oauth_required
     def get(self, number):
         '''Handles chat portion of the puzzle page.'''
         if not self.logged_in:
@@ -76,6 +79,7 @@ class ChatHandler(BaseHandler):
         self.render('chat.html', context)
 
 class PuzzleHandler(BaseHandler):
+    @oauth_decorator.oauth_required
     def get(self, number):
         '''Handles puzzle page. Creates a spreadsheet for the page if none exists.'''
         if not self.logged_in:
@@ -104,9 +108,9 @@ class PuzzleHandler(BaseHandler):
         self.render('puzzle.html', context)
 
 
+    @oauth_decorator.oauth_required
     def createEmptySpreadsheet(self, number):
-        credentials = pages.getCred(HUNTBOARD_NAME, self.auth.get_user_by_session()['user_id'])
-        http = credentials.authorize(httplib2.Http())
+        http = oauth_decorator.http()
         drive_service = build('drive', 'v2', http=http)
         body = {
             'title': '2014.'+number,
@@ -118,10 +122,6 @@ class PuzzleHandler(BaseHandler):
 
     # Only trash, don't delete files in case something goes wrong
     def trashFile(self, file_id):
+        http = oauth_decorator.http()
         url = 'https://www.googleapis.com/drive/v2/files/'+file_id+'/trash'
-        result = urlfetch.fetch(url=url,
-            method=urlfetch.POST,
-            headers={
-                'Authorization': 'Bearer '+auth_info['access_token'],
-            }
-        )
+        http.request(url, method='POST')

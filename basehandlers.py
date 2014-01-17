@@ -5,15 +5,15 @@ import datetime
 import httplib2
 import json
 import logging
+import os
 import pages
 import secrets
 import urllib
-import urllib2
 import webapp2
-from google.appengine.api import urlfetch
+from functools import wraps
+from google.appengine.api import users
 from jinja2.runtime import TemplateNotFound
-from oauth2client.client import AccessTokenCredentials
-from simpleauth import SimpleAuthHandler
+from oauth2client.appengine import OAuth2DecoratorFromClientSecrets
 from webapp2_extras import auth, sessions, jinja2
 
 
@@ -28,10 +28,9 @@ GOOGLE_SCOPES = ' '.join([
     'https://www.googleapis.com/auth/userinfo.email',
 ])
 
-AUTH_CONFIG = {
-    # OAuth 2.0 providers
-    'google': (secrets.GOOGLE_APP_ID, secrets.GOOGLE_APP_SECRET, GOOGLE_SCOPES),
-}
+oauth_decorator = OAuth2DecoratorFromClientSecrets(
+    os.path.join(os.path.dirname(__file__), 'client_secrets.json'),
+    GOOGLE_SCOPES)
 
 # Extend the base handler for session configuration
 class BaseHandler(webapp2.RequestHandler):
@@ -74,11 +73,6 @@ class BaseHandler(webapp2.RequestHandler):
         if user_dict == None:
             return None
         return self.auth.store.user_model.get_by_id(user_dict['user_id'])
-      
-    @webapp2.cached_property
-    def logged_in(self):
-        """Returns true if a user is currently logged in, false otherwise"""
-        return self.auth.get_user_by_session() is not None
 
     def login_needed(self):
         context = {}
@@ -104,12 +98,6 @@ class BaseHandler(webapp2.RequestHandler):
         except TemplateNotFound:
           self.abort(404)
 
-
-class AuthHandler(BaseHandler, SimpleAuthHandler):
-#Authentication handler for all kinds of auth.
-
-    # Enable optional OAuth 2.0 CSRF guard
-    OAUTH2_CSRF_STATE = True
     USER_ATTRS = {
         'google': {
           'name'        : 'name',
@@ -120,109 +108,75 @@ class AuthHandler(BaseHandler, SimpleAuthHandler):
         }
     }
 
-    def _on_signin(self, data, auth_info, provider):
-        """Callback whenever a new or existing user is logging in.
-        data is a user info dictionary.
-        auth_info contains access token or oauth token and secret.
-
-        See what's in it with logging.info(data, auth_info)
-        """
-
-        if self.logged_in:
-            logging.info('Logging out currently logged in user')
-            self.auth.unset_session()
-       
+    @webapp2.cached_property
+    def logged_in(self):
         logging.info('Checking for access rights')
-        inGroup = self.checkForAccessRights(data,auth_info)
+        user = users.get_current_user()
+        inGroup = self.checkForAccessRights(user)
         if not inGroup:
-            logging.info("Unauthorized user "+data['email']+", id"+data['id']+" attempted access")
-            self.redirectFailedLogin(data)
-            return
+            logging.info("Unauthorized user " + user.email() + ", id " + user.user_id() + " attempted access")
+            return False
 
-        auth_id = '%s:%s' % (provider, data['id'])
+        auth_id = 'google:%s' % (user.user_id(),)
         logging.info('Looking for a user with id %s', auth_id)
         user = self.auth.store.user_model.get_by_auth_id(auth_id)
-        _attrs = self._to_user_model_attrs(data, self.USER_ATTRS[provider])
 
         if user:
             logging.info('Found existing user to log in')
-            # Existing users might've changed their profile data so we update our
-            # local model anyway. This might result in quite inefficient usage
-            # of the Datastore, but we do this anyway for demo purposes.
-            #
-            # In a real app you could compare _attrs with user's properties fetched
-            # from the datastore and update local user in case something's changed.
-            user.populate(**_attrs)
-            user.put()
             self.auth.set_session(self.auth.store.user_to_dict(user))
-            self.setCredentials(data, auth_info)
+            return True
         else:
             # Create a new user if nobody's signed in, and the user is on the
             # galactic-dogesetters google group,
+
+            http = oauth_decorator.http()
+            resp, content = http.request('https://www.googleapis.com/oauth2/v3/userinfo')
+            if resp.status != 200:
+                return False
+            data = json.loads(content)
+            _attrs = self._to_user_model_attrs(data, self.USER_ATTRS['google'])
 
             logging.info('Creating a brand new user')
             ok, user = self.auth.store.user_model.create_user(auth_id, **_attrs)
             if ok:
                 self.auth.set_session(self.auth.store.user_to_dict(user))
-                self.setCredentials(data, auth_info)
+                return True
             else:
-                self.redirectFailedLogin(data)
-                return
+                return False
 
-        # Go to the main page
-        self.redirect('/')
-
-    def setCredentials(self, data, auth_info) :
-        credentials = AccessTokenCredentials(auth_info['access_token'], None)
-        pages.setCred(HUNTBOARD_NAME, data['id'], credentials)
-       
-    def checkForAccessRights(self, data, auth_info):
+    def checkForAccessRights(self, user):
         # Allow login to the website iff user has access to Hunt 2014 folder
         
         try:
             # Get permission ID for this user
-            url = "https://www.googleapis.com/drive/v2/permissionIds/"+data['email']
-            req = urllib2.Request(url)
-            req.add_header('Authorization', 'Bearer '+auth_info['access_token'])
-            resp = urllib2.urlopen(req)
-            contents = json.loads(resp.read())
+            url = "https://www.googleapis.com/drive/v2/permissionIds/"+user.email()
+            http = oauth_decorator.http()
+            resp, content = http.request(url)
+            if resp.status != 200:
+                logging.info(content)
+                return False
+            contents = json.loads(content)
             pId = contents["id"]
 
             # Check for permission on the file
             url = "https://www.googleapis.com/drive/v2/files/"+HUNT_2014_FOLDER_ID+"/permissions/"+pId
-            req = urllib2.Request(url)
-            req.add_header('Authorization', 'Bearer '+auth_info['access_token'])
-            resp = urllib2.urlopen(req)
+            resp, content = http.request(url)
+            if resp.status != 200:
+                logging.info(content)
+                return False
 
-        except urllib2.URLError, e:
-            contents = json.loads(e.read())
+        except httplib2.HttpLib2Error, e:
             logging.error(e)
-            logging.info(contents)
             return False
         return True
 
-    def redirectFailedLogin(self, data):
-        self.redirect('/?authfailed=true&attempt='+data['email'])
-
+    @oauth_decorator.oauth_aware
     def logout(self):
+       if oauth_decorator.has_credentials():
+           oauth_decorator.credentials.revoke(oauth_decorator.http())
        self.auth.unset_session()
        self.redirect('/')
 
-    def handle_exception(self, exception, debug):
-        logging.error(exception)
-        self.render('error.html', {'exception': exception})
-
-    def _callback_uri_for(self, provider):
-       return self.uri_for('auth_callback', provider=provider, _full=True)
-
-    def _get_consumer_info_for(self, provider):
-        """Returns a (key, secret, desired_scopes) tuple.
-
-        For OAuth 2.0 it should be a 3 elements tuple:
-        (client_ID, client_secret, scopes)
-        """
-        return AUTH_CONFIG[provider]
-    
     def _to_user_model_attrs(self, data, attrs_map):
         """Get the needed information from the provider dataset."""
         user_attrs = {}

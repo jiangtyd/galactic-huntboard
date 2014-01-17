@@ -1,6 +1,7 @@
 
 # -*- coding: utf-8 -*-
 import sys
+from basehandlers import oauth_decorator
 from secrets import SESSION_KEY
 
 from webapp2 import WSGIApplication, Route
@@ -24,11 +25,8 @@ app_config = {
 # Map URLs to handlers
 routes = [
   Route('/', handler='handlers.RootHandler'),
-  Route('/logout', handler='handlers.AuthHandler:logout', name='logout'),
-  Route('/auth/<provider>', 
-    handler='handlers.AuthHandler:_simple_auth', name='auth_login'),
-  Route('/auth/<provider>/callback', 
-    handler='handlers.AuthHandler:_auth_callback', name='auth_callback'),
+  Route(oauth_decorator.callback_path, oauth_decorator.callback_handler()),
+  Route('/logout', handler='handlers.BaseHandler:logout', name='logout'),
   # Reserving 800-999 for testing
   Route('/2014/<number:[1-9]\d{,1}|[1-7]\d{2}>', handler='handlers.PuzzleHandler'),
   Route('/2014/chat/<number:0|[1-9]\d{,1}|[1-7]\d{2}>', handler='handlers.ChatHandler', name='chat'),
