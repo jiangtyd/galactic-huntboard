@@ -15,7 +15,7 @@ from google.appengine.api import users
 from jinja2.runtime import TemplateNotFound
 from oauth2client.appengine import OAuth2DecoratorFromClientSecrets
 from oauth2client.client import TokenRevokeError
-from webapp2_extras import auth, sessions, jinja2
+from webapp2_extras import jinja2
 
 
 
@@ -36,47 +36,11 @@ oauth_decorator = OAuth2DecoratorFromClientSecrets(
 oauth2_service = build('oauth2', 'v2')
 drive_service = build('drive', 'v2')
 
-# Extend the base handler for session configuration
 class BaseHandler(webapp2.RequestHandler):
-    def dispatch(self):
-
-        # Get a session store for this request.
-        self.session_store = sessions.get_store(request=self.request)
-
-        try:
-            # Dispatch the request.
-            webapp2.RequestHandler.dispatch(self)
-        finally:
-            # Save all sessions.
-            self.session_store.save_sessions(self.response)
-
-
-    @webapp2.cached_property
-    def session(self):
-        # Returns a session using the default cookie key.
-        return self.session_store.get_session()
-
     @webapp2.cached_property    
     def jinja2(self):
         """Returns a Jinja2 renderer cached in the app registry"""
         return jinja2.get_jinja2(app=self.app)
-
-    @webapp2.cached_property
-    def session(self):
-        """Returns a session using the default cookie key"""
-        return self.session_store.get_session()
-
-    @webapp2.cached_property
-    def auth(self):
-      return auth.get_auth()
-
-    @webapp2.cached_property
-    def current_user(self):
-        """Returns currently logged in user"""
-        user_dict = self.auth.get_user_by_session()
-        if user_dict == None:
-            return None
-        return self.auth.store.user_model.get_by_id(user_dict['user_id'])
 
     def login_needed(self):
         context = {}
@@ -89,8 +53,7 @@ class BaseHandler(webapp2.RequestHandler):
         values = {
           'uri_for': self.uri_for,
           'logged_in': self.logged_in,
-          'user': self.current_user,
-          'flashes': self.session.get_flashes()
+          'user': users.get_current_user(),
         }
         
         # Add manually supplied template values
@@ -121,32 +84,7 @@ class BaseHandler(webapp2.RequestHandler):
             logging.info("Unauthorized user " + user.email() + ", id " + user.user_id() + " attempted access")
             return False
 
-        auth_id = 'google:%s' % (user.user_id(),)
-        logging.info('Looking for a user with id %s', auth_id)
-        user = self.auth.store.user_model.get_by_auth_id(auth_id)
-
-        if user:
-            logging.info('Found existing user to log in')
-            self.auth.set_session(self.auth.store.user_to_dict(user))
-            return True
-        else:
-            # Create a new user if nobody's signed in, and the user is on the
-            # galactic-dogesetters google group,
-
-            http = oauth_decorator.http()
-            try:
-                data = oauth2_service.userinfo().get().execute(http=http)
-            except HttpError:
-                return False
-            _attrs = self._to_user_model_attrs(data, self.USER_ATTRS['google'])
-
-            logging.info('Creating a brand new user')
-            ok, user = self.auth.store.user_model.create_user(auth_id, **_attrs)
-            if ok:
-                self.auth.set_session(self.auth.store.user_to_dict(user))
-                return True
-            else:
-                return False
+        return True
 
     def checkForAccessRights(self, user):
         # Allow login to the website iff user has access to Hunt 2014 folder
@@ -167,7 +105,6 @@ class BaseHandler(webapp2.RequestHandler):
                 oauth_decorator.credentials.revoke(oauth_decorator.http())
             except TokenRevokeError:
                 pass
-        self.auth.unset_session()
         self.redirect('/')
 
     def _to_user_model_attrs(self, data, attrs_map):

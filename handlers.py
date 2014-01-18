@@ -21,7 +21,7 @@ import logging
 import pages
 import urllib
 from apiclient.discovery import build
-from basehandlers import BaseHandler, HUNT_2014_FOLDER_ID, HUNTBOARD_NAME, drive_service, oauth_decorator
+from basehandlers import BaseHandler, HUNT_2014_FOLDER_ID, HUNTBOARD_NAME, drive_service, oauth_decorator, oauth2_service
 from google.appengine.api import urlfetch, users
 
 '''
@@ -56,7 +56,9 @@ class ChatHandler(BaseHandler):
             self.login_needed()
             return
 
-        nick = self.current_user.given_name + self.current_user.family_name
+        http = oauth_decorator.http()
+        data = oauth2_service.userinfo().get().execute(http=http)
+        nick = data['given_name'] + data['family_name']
 
         if number == '0':
             channels = 'galdoge-callqueue,galdoge verytrendy!,verytrendy!'

@@ -13,13 +13,6 @@ if 'lib' not in sys.path:
 
 # webapp2 config
 app_config = {
-  'webapp2_extras.sessions': {
-    'cookie_name': '_simpleauth_sess',
-    'secret_key': SESSION_KEY
-  },
-  'webapp2_extras.auth': {
-    'user_attributes': []
-  }
 }
     
 # Map URLs to handlers
