@@ -32,7 +32,7 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     extensions=['jinja2.ext.autoescape'])
 '''
 
-HUNT_2014_MAIN_SPREADSHEET = 'https://docs.google.com/spreadsheet/ccc?key=0Ao0dlaERwPXMdE9HdUdBT0Q1SUl3T0x2YndOM1F6aXc#gid=0'
+HUNT_2014_MAIN_SPREADSHEET = 'https://docs.google.com/spreadsheet/ccc?key=0AlzTSYJ9kTiqdGlsLXZQUDFJem5UT0kzNEUxdzVpQ3c#gid=0'
 
 class RootHandler(BaseHandler):
     @oauth_decorator.oauth_required
@@ -61,9 +61,9 @@ class ChatHandler(BaseHandler):
         nick = data['given_name'] + data['family_name']
 
         if number == '0':
-            channels = 'galdoge-callqueue,galdoge verytrendy!,verytrendy!'
+            channels = 'galactic-trendsetters verytrendy!'
         else:
-            channels = 'galdoge-%s verytrendy!' % (number,)
+            channels = 'galactic-trendsetters-%s verytrendy!' % (number,)
 
         chat_args = [
             ('channels', channels),
@@ -71,7 +71,7 @@ class ChatHandler(BaseHandler):
         ]
         # qwebirc requires quote, not quote_plus
         # http://hg.qwebirc.org/qwebirc/issue/323
-        chat_frame = '//webchat.quakenet.org/?' + \
+        chat_frame = '//webchat.freenode.net/?' + \
             '&'.join(urllib.quote(k) + '=' + urllib.quote(v)
                      for k, v in chat_args)
 

@@ -19,7 +19,7 @@ from webapp2_extras import jinja2
 
 
 
-HUNT_2014_FOLDER_ID = "0B1zTSYJ9kTiqbkIzR3BWTnlhc3M"
+HUNT_2014_FOLDER_ID = "0B1zTSYJ9kTiqcGxvdHFYU2pGckk"
 HUNTBOARD_NAME = "Huntboard"
 
 GOOGLE_SCOPES = ' '.join([
