@@ -19,7 +19,7 @@ from webapp2_extras import jinja2
 
 
 
-HUNT_2014_FOLDER_ID = "0B1zTSYJ9kTiqcGxvdHFYU2pGckk"
+HUNT_2015_FOLDER_ID = "0B1zTSYJ9kTiqcGxvdHFYU2pGckk"
 HUNTBOARD_NAME = "Huntboard"
 
 GOOGLE_SCOPES = ' '.join([
@@ -87,12 +87,12 @@ class BaseHandler(webapp2.RequestHandler):
         return True
 
     def checkForAccessRights(self, user):
-        # Allow login to the website iff user has access to Hunt 2014 folder
+        # Allow login to the website iff user has access to Hunt 2015 folder
         
         try:
             http = oauth_decorator.http()
             pId = drive_service.permissions().getIdForEmail(email=user.email()).execute(http=http)['id']
-            drive_service.permissions().get(fileId=HUNT_2014_FOLDER_ID, permissionId=pId).execute(http=http)
+            drive_service.permissions().get(fileId=HUNT_2015_FOLDER_ID, permissionId=pId).execute(http=http)
         except HttpError, e:
             logging.error(e)
             return False

@@ -21,7 +21,7 @@ import logging
 import pages
 import urllib
 from apiclient.discovery import build
-from basehandlers import BaseHandler, HUNT_2014_FOLDER_ID, HUNTBOARD_NAME, drive_service, oauth_decorator, oauth2_service
+from basehandlers import BaseHandler, HUNT_2015_FOLDER_ID, HUNTBOARD_NAME, drive_service, oauth_decorator, oauth2_service
 from google.appengine.api import urlfetch, users
 
 '''
@@ -32,7 +32,7 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     extensions=['jinja2.ext.autoescape'])
 '''
 
-HUNT_2014_MAIN_SPREADSHEET = 'https://docs.google.com/spreadsheet/ccc?key=0AlzTSYJ9kTiqdGlsLXZQUDFJem5UT0kzNEUxdzVpQ3c#gid=0'
+HUNT_2015_MAIN_SPREADSHEET = 'https://docs.google.com/spreadsheet/ccc?key=0AlzTSYJ9kTiqdGlsLXZQUDFJem5UT0kzNEUxdzVpQ3c#gid=0'
 
 class RootHandler(BaseHandler):
     @oauth_decorator.oauth_required
@@ -44,7 +44,7 @@ class RootHandler(BaseHandler):
 
         context = {
             'index': 0,
-            'doc': HUNT_2014_MAIN_SPREADSHEET
+            'doc': HUNT_2015_MAIN_SPREADSHEET
         }
         self.render('main_puzzle.html', context)
 
@@ -117,9 +117,9 @@ class PuzzleHandler(BaseHandler):
 
         http = oauth_decorator.http()
         body = {
-            'title': '2014.'+number,
+            'title': '2015.'+number,
             'mimeType': 'application/vnd.google-apps.spreadsheet',
-            'parents': [{'id': HUNT_2014_FOLDER_ID}]
+            'parents': [{'id': HUNT_2015_FOLDER_ID}]
         }
         file = drive_service.files().insert(body=body).execute(http=http)
         return (file['id'], file['alternateLink'])
