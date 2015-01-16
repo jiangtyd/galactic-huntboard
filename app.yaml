@@ -8,15 +8,19 @@ handlers:
 - url: /favicon\.ico
   static_files: favicon.ico
   upload: favicon\.ico
+  secure: always
 
 - url: /stylesheets
   static_dir: stylesheets
+  secure: always
 
 - url: /javascripts
   static_dir: javascripts
+  secure: always
 
 - url: .*
   script: main.app
+  secure: always
 
 libraries:
 - name: jinja2
