@@ -107,7 +107,8 @@ class PuzzleHandler(BaseHandler):
             'index': number,
             'doc': sheet_link
         }
-        self.render('puzzle.html', context)
+        #self.render('puzzle.html', context)
+        self.redirect(sheet_link)
 
 
     @oauth_decorator.oauth_required
